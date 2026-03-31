@@ -1,24 +1,42 @@
+import java.util.Scanner;
+
 public class Main {
     public static void main(String[] args) {
-        FileRepository repo = new FileRepository();
+        Scanner scanner = new Scanner(System.in);
+        FileRepository repository = new FileRepository();
+        QueryProcessor queryProcessor = new QueryProcessor(repository);
 
-        long now = System.currentTimeMillis();
+        System.out.println("=== Local File Search Engine ===");
 
-        FileData file1 = new FileData(
-                "test1.txt",
-                "/tmp/test1.txt",
-                "Hello this is a test file",
-                now
-        );
+        // Configuration
+        System.out.print("Enter root directory to index (e.g., C:/Projects or /Users/me/Docs): ");
+        String rootDir = scanner.nextLine();
 
-        FileData file2 = new FileData(
-                "test2.txt",
-                "/tmp/test2.txt",
-                "Another file with PostgreSQL content",
-                now
-        );
+        System.out.print("Enter file extension to ignore (e.g., .log) or press Enter to skip: ");
+        String ignoreExt = scanner.nextLine();
+        if (ignoreExt.isEmpty()) ignoreExt = ".NONE";
 
-        repo.insertFile(file1);
-        repo.insertFile(file2);
+        // Initialization
+        Crawler crawler = new Crawler(ignoreExt, repository);
+        Indexer indexer = new Indexer(crawler);
+
+        // Build Index
+        indexer.startIndexing(rootDir);
+
+        // Search Loop
+        while (true) {
+            System.out.print("Enter search query (or type 'exit' to quit): ");
+            String query = scanner.nextLine();
+
+            if ("exit".equalsIgnoreCase(query)) {
+                System.out.println("Goodbye!");
+                break;
+            }
+
+            if (!query.trim().isEmpty()) {
+                queryProcessor.executeQuery(query);
+            }
+        }
+        scanner.close();
     }
 }
