@@ -81,13 +81,20 @@ public class FileRepository {
 
     public List<FileData> searchFiles(String query) {
         List<FileData> results = new ArrayList<>();
-        // PostgreSQL full-text search
-        String searchSql = "SELECT filename, filepath, content, last_modified FROM files " + "WHERE to_tsvector('english', content) @@ plainto_tsquery('english', ?)";
+
+        String searchSql =
+                "SELECT filename, filepath, content, last_modified, " + "       CASE WHEN filename ILIKE ? THEN 1 ELSE 0 END as rank " + "FROM files " + "WHERE filename ILIKE ? " + "   OR to_tsvector('simple', content) @@ plainto_tsquery('simple', ?) " + "ORDER BY rank DESC";
 
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(searchSql)) {
 
-            pstmt.setString(1, query);
+
+            String nameQuery = "%" + query + "%"; // wrap the query in '%' for the ILIKE search
+
+            pstmt.setString(1, nameQuery); // For the rank condition
+            pstmt.setString(2, nameQuery); // For the WHERE filename condition
+            pstmt.setString(3, query);     // For the full-text content search
+
             ResultSet rs = pstmt.executeQuery();
 
             while (rs.next()) {
