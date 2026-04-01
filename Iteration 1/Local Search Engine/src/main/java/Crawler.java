@@ -93,6 +93,10 @@ public class Crawler {
             // sanitize the string before saving it to the database, because PostgreSQL cannot store the null byte (0x00).
             if (content != null) {
                 content = content.replace("\u0000", "");
+
+                if (content.length() > 1048000) {
+                    content = content.substring(0, 500000);
+                }
             }
 
             FileData fileData = new FileData(
