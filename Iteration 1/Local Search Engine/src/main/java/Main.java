@@ -8,22 +8,28 @@ public class Main {
 
         System.out.println("=== Local File Search Engine ===");
 
-        // Configuration
-        System.out.print("Enter root directory to index (e.g., C:/Projects or /Users/me/Docs): ");
-        String rootDir = scanner.nextLine();
+        System.out.print("Do you want to update the file index before searching? (y/n): ");
+        String updateChoice = scanner.nextLine().trim().toLowerCase();
 
-        System.out.print("Enter file extension to ignore (e.g., .log) or press Enter to skip: ");
-        String ignoreExt = scanner.nextLine();
-        if (ignoreExt.isEmpty()) ignoreExt = ".NONE";
+        if (updateChoice.equals("y") || updateChoice.equals("yes")) {
+            System.out.print("Enter root directory to index: ");
+            String rootDir = scanner.nextLine();
 
-        // Initialization
-        Crawler crawler = new Crawler(ignoreExt, repository);
-        Indexer indexer = new Indexer(crawler, repository);
+            System.out.print("Enter file extension to ignore (e.g., .log) or press Enter to skip: ");
+            String ignoreExt = scanner.nextLine();
+            if (ignoreExt.isEmpty()) ignoreExt = ".NONE";
 
-        // Build Index
-        indexer.startIndexing(rootDir);
+            Crawler crawler = new Crawler(ignoreExt, repository);
+            Indexer indexer = new Indexer(crawler, repository);
+
+            System.out.println("\nIndexing started...");
+            indexer.startIndexing(rootDir);
+        } else {
+            System.out.println("Skipping indexing. Using existing database for searches.");
+        }
 
         // Search Loop
+        System.out.println("\n--- Search Mode ---");
         while (true) {
             System.out.print("Enter search query (or type 'exit' to quit): ");
             String query = scanner.nextLine();
