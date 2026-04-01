@@ -1,3 +1,10 @@
+package app;
+
+import core.Crawler;
+import core.Indexer;
+import core.QueryProcessor;
+import repository.FileRepository;
+
 import java.util.Scanner;
 
 public class Main {

@@ -1,3 +1,7 @@
+package core;
+
+import repository.FileRepository;
+
 import java.io.File;
 
 public class Indexer {

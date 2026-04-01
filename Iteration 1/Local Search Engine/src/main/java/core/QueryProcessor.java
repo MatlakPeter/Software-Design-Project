@@ -1,3 +1,8 @@
+package core;
+
+import model.FileData;
+import repository.FileRepository;
+
 import java.util.List;
 
 public class QueryProcessor {

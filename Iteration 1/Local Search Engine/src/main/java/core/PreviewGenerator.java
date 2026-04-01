@@ -1,3 +1,5 @@
+package core;
+
 public class PreviewGenerator {
     public static String generatePreview(String content) {
         if (content == null || content.isEmpty()) return "No content available.";

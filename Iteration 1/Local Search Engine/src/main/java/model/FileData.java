@@ -1,3 +1,5 @@
+package model;
+
 public class FileData {
     private String filename;
     private String filepath;
