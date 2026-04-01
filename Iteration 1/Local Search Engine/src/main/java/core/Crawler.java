@@ -21,6 +21,9 @@ public class Crawler {
 
     private int filesScannedCount; // counter for feedback while crawling
 
+    private static final int _1MB = 1024 * 1024;
+    private static final int LARGE_FILE_SAVE_LENGTH = _1MB / 2;
+
     private static final Set<String> TEXT_FILE_EXTENSIONS = Set.of(
             "txt", "md", "csv", "log", "json", "xml", "html", "htm",
             "yaml", "yml", "ini", "cfg", "conf",
@@ -45,13 +48,13 @@ public class Crawler {
     public void scanDirectory(File directory) {
         File[] files = directory.listFiles();
         if (files == null) { // Error handling for permissions
-            // System.out.println("Warning: Access denied or not a directory -> " + directory.getAbsolutePath());
+            System.out.println("Warning: Access denied or not a directory -> " + directory.getAbsolutePath());
             return;
         }
 
         for (File file : files) {
             filesScannedCount++;
-            if (filesScannedCount % 1000 == 0) { // print feeckack for every 1000th file
+            if (filesScannedCount % 1000 == 0) { // Print feeckack for every 1000th file
                 System.out.println("... Still scanning. Files checked: " + filesScannedCount + " (Currently at: " + file.getParent() + ")");
             }
 
@@ -99,8 +102,8 @@ public class Crawler {
             if (content != null) {
                 content = content.replace("\u0000", "");
 
-                if (content.length() > 1048000) {
-                    content = content.substring(0, 500000);
+                if (content.length() > _1MB) {
+                    content = content.substring(0, LARGE_FILE_SAVE_LENGTH);
                 }
             }
 
@@ -113,7 +116,7 @@ public class Crawler {
             repository.saveOrUpdateFile(fileData);
 
         } catch (IOException e) {
-            // System.err.println("Could not read file: " + file.getAbsolutePath() + " | Reason: " + e.getClass().getSimpleName());
+             System.err.println("Could not read file: " + file.getAbsolutePath() + " | Reason: " + e.getClass().getSimpleName());
         }
     }
 }

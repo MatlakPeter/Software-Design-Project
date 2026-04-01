@@ -10,7 +10,7 @@ import java.util.Set;
 public class FileRepository {
     private static final String URL = "jdbc:postgresql://localhost:5432/searchengine";
     private static final String USER = "postgres";
-    private static final String PASSWORD = "postgres";
+    private static final String PASSWORD = "PACI#203";
 
     private Connection getConnection() throws SQLException {
         return DriverManager.getConnection(URL, USER, PASSWORD);
@@ -86,8 +86,13 @@ public class FileRepository {
     public List<FileData> searchFiles(String query) {
         List<FileData> results = new ArrayList<>();
 
-        String searchSql =
-                "SELECT filename, filepath, content, last_modified, " + "       CASE WHEN filename ILIKE ? THEN 1 ELSE 0 END as rank " + "FROM files " + "WHERE filename ILIKE ? " + "   OR to_tsvector('simple', content) @@ plainto_tsquery('simple', ?) " + "ORDER BY rank DESC";
+        String searchSql = """
+            SELECT filename, filepath, content, last_modified,
+                   CASE WHEN filename ILIKE ? THEN 1 ELSE 0 END AS rank
+            FROM files
+            WHERE filename ILIKE ? OR to_tsvector('simple', content) @@ plainto_tsquery('simple', ?)
+            ORDER BY rank DESC
+            """;
 
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(searchSql)) {
