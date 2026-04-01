@@ -4,6 +4,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
+import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
+import java.nio.charset.MalformedInputException;
+import java.nio.charset.UnmappableCharacterException;
 
 public class Crawler {
     private String ignoreExtension;
@@ -63,8 +67,26 @@ public class Crawler {
     private void processFile(File file) {
         try {
             scannedPaths.add(file.getAbsolutePath());
+            String content = "";
 
-            String content = Files.readString(Path.of(file.getAbsolutePath()));
+            try {
+                // Attempt 1: Standard UTF-8
+                content = Files.readString(Path.of(file.getAbsolutePath()), StandardCharsets.UTF_8);
+            } catch (MalformedInputException | UnmappableCharacterException e) {
+                try {
+                    // Attempt 2: Fallback to Central European Windows encoding
+                    content = Files.readString(Path.of(file.getAbsolutePath()), Charset.forName("windows-1250"));
+                } catch (MalformedInputException | UnmappableCharacterException e2) {
+                    // Attempt 3: Ultimate fallback. ISO-8859-1 reads almost anything without throwing errors.
+                    content = Files.readString(Path.of(file.getAbsolutePath()), StandardCharsets.ISO_8859_1);
+                }
+            }
+
+            // sanitize the string before saving it to the database, because PostgreSQL cannot store the null byte (0x00).
+            if (content != null) {
+                content = content.replace("\u0000", "");
+            }
+
             FileData fileData = new FileData(
                     file.getName(),
                     file.getAbsolutePath(),
@@ -72,8 +94,9 @@ public class Crawler {
                     file.lastModified()
             );
             repository.saveOrUpdateFile(fileData);
+
         } catch (IOException e) {
-            System.err.println("Could not read file: " + file.getAbsolutePath());
+            System.err.println("Could not read file: " + file.getAbsolutePath() + " | Reason: " + e.getClass().getSimpleName());
         }
     }
 }
