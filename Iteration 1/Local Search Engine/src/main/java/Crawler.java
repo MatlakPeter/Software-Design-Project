@@ -2,11 +2,13 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.Set;
 
 public class Crawler {
     private String ignoreExtension;
     private FileRepository repository;
+    private Set<String> scannedPaths;
 
     private static final Set<String> TEXT_FILE_EXTENSIONS = Set.of(
             "txt", "md", "csv", "log", "json", "xml", "html", "htm",
@@ -18,6 +20,14 @@ public class Crawler {
     public Crawler(String ignoreExtension, FileRepository repository) {
         this.ignoreExtension = ignoreExtension;
         this.repository = repository;
+        this.scannedPaths = new HashSet<>();
+    }
+
+    public Set<String> getScannedPaths() {
+        return scannedPaths;
+    }
+    public void resetScannedPaths() {
+        scannedPaths.clear();
     }
 
     public void scanDirectory(File directory) {
@@ -52,8 +62,15 @@ public class Crawler {
 
     private void processFile(File file) {
         try {
+            scannedPaths.add(file.getAbsolutePath());
+
             String content = Files.readString(Path.of(file.getAbsolutePath()));
-            FileData fileData = new FileData(file.getName(), file.getAbsolutePath(), content, file.lastModified());
+            FileData fileData = new FileData(
+                    file.getName(),
+                    file.getAbsolutePath(),
+                    content,
+                    file.lastModified()
+            );
             repository.saveOrUpdateFile(fileData);
         } catch (IOException e) {
             System.err.println("Could not read file: " + file.getAbsolutePath());

@@ -1,6 +1,7 @@
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class FileRepository {
     private static final String URL = "jdbc:postgresql://localhost:5432/searchengine";
@@ -50,6 +51,31 @@ public class FileRepository {
             }
         } catch (SQLException e) {
             System.err.println("Database error for file: " + file.getFilepath() + " - " + e.getMessage());
+        }
+    }
+
+    public void deleteStaleFiles(Set<String> validPaths, String rootDirectory) {
+        String selectSql = "SELECT filepath FROM files";
+        String deleteSql = "DELETE FROM files WHERE filepath = ?";
+
+        try (Connection conn = getConnection();
+             Statement selectStmt = conn.createStatement();
+             ResultSet rs = selectStmt.executeQuery(selectSql);
+             PreparedStatement deleteStmt = conn.prepareStatement(deleteSql)) {
+
+            while (rs.next()) {
+                String dbPath = rs.getString("filepath");
+
+                // If the database path falls under the directory we just scanned,
+                // but it wasn't found during the crawl, it must have been deleted.
+                if (dbPath.startsWith(rootDirectory) && !validPaths.contains(dbPath)) {
+                    deleteStmt.setString(1, dbPath);
+                    deleteStmt.executeUpdate();
+                    Indexer.incrementDeleted();
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error deleting stale files: " + e.getMessage());
         }
     }
 

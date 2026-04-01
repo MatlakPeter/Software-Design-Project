@@ -18,7 +18,7 @@ public class Main {
 
         // Initialization
         Crawler crawler = new Crawler(ignoreExt, repository);
-        Indexer indexer = new Indexer(crawler);
+        Indexer indexer = new Indexer(crawler, repository);
 
         // Build Index
         indexer.startIndexing(rootDir);

@@ -4,11 +4,14 @@ public class Indexer {
     private static int added = 0;
     private static int updated = 0;
     private static int ignored = 0;
+    private static int deleted = 0; // track deletions
 
     private Crawler crawler;
+    private FileRepository repository;
 
-    public Indexer(Crawler crawler) {
+    public Indexer(Crawler crawler, FileRepository repository) {
         this.crawler = crawler;
+        this.repository = repository;
     }
 
     public static void incrementAdded() {
@@ -19,6 +22,9 @@ public class Indexer {
     }
     public static void incrementIgnored() {
         ignored++;
+    }
+    public static void incrementDeleted() {
+        deleted++;
     }
 
     public void startIndexing(String rootPath) {
@@ -32,6 +38,9 @@ public class Indexer {
         }
 
         crawler.scanDirectory(rootDir);
+
+        repository.deleteStaleFiles(crawler.getScannedPaths(), rootDir.getAbsolutePath());
+
         generateReport();
     }
 
@@ -39,6 +48,7 @@ public class Indexer {
         System.out.println("\n--- Indexing Complete ---");
         System.out.println("New files added: " + added);
         System.out.println("Existing files updated: " + updated);
+        System.out.println("Files deleted from DB: " + deleted);
         System.out.println("Files unmodified (ignored): " + ignored);
         System.out.println("-------------------------\n");
     }
