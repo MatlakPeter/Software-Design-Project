@@ -3,8 +3,8 @@ from enumerations.Enumerations import *
 
 
 class Ingestor(HandlerInterface):
-    def __init__(self, orchestrator):
-        self.orchestrator = orchestrator
+    def __init__(self, context):
+        self.context = context
 
     def handle(self,):
         print("Ingestor")

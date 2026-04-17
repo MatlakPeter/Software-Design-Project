@@ -1,3 +1,4 @@
+from context.Context import Context
 from control.Workflow import Workflow
 from enumerations.Enumerations import *
 from handlers.Ingestor import Ingestor
@@ -11,14 +12,15 @@ class Orchestrator:
     def __init__(self, file_path):
         self.file_path = file_path
         self.workflow = Workflow()
+        self.context = Context(file_path)
 
         self._handlers = {
-            State.INITIAL_STATE: Ingestor(self),
-            State.INGESTED:      Analyzer(self),
-            State.ANALYZED:      Processor(self),
-            State.PROCESSED:     ComplianceApplier(self),
-            State.COMPLIANT:     Packager(self),
-            State.PACKAGED:      Finisher(self)
+            State.INITIAL_STATE: Ingestor(self.context),
+            State.INGESTED:      Analyzer(self.context),
+            State.ANALYZED:      Processor(self.context),
+            State.PROCESSED:     ComplianceApplier(self.context),
+            State.COMPLIANT:     Packager(self.context),
+            State.PACKAGED:      Finisher(self.context)
         }
 
     def do_workflow(self):
