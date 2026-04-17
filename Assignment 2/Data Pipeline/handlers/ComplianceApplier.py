@@ -6,6 +6,6 @@ class ComplianceApplier(HandlerInterface):
     def __init__(self, orchestrator):
         self.orchestrator = orchestrator
 
-    def handle(self, orchestrator):
+    def handle(self):
         print("ComplianceApplier")
-        self.orchestrator.event_finished(Event.APPLY_COMPLIANCE)
+        return Event.APPLY_COMPLIANCE

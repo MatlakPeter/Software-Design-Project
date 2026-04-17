@@ -6,6 +6,6 @@ class Packager(HandlerInterface):
     def __init__(self, orchestrator):
         self.orchestrator = orchestrator
 
-    def handle(self, orchestrator):
+    def handle(self):
         print("Packager")
-        self.orchestrator.event_finished(Event.PACKAGE)
+        return Event.PACKAGE

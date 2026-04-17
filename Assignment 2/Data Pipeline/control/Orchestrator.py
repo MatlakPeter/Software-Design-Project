@@ -22,18 +22,13 @@ class Orchestrator:
         }
 
     def do_workflow(self):
-        curr_state = self.workflow.state
+        while self.workflow.state != State.COMPLETED:
+            curr_state = self.workflow.state
 
-        if curr_state not in State:
-            raise ValueError(f"Invalid workflow state: {curr_state}")
+            if curr_state not in State:
+                raise ValueError(f"Invalid workflow state: {curr_state}")
 
-        if curr_state == State.COMPLETED:
-            print("Completed")
-            return
+            handler = self._handlers[curr_state]
+            event = handler.handle()
+            self.workflow.transition(event)
 
-        handler = self._handlers[curr_state]
-        handler.handle(self)
-
-    def event_finished(self, event):
-        self.workflow.transition(event)
-        self.do_workflow()

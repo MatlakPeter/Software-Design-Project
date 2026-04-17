@@ -6,6 +6,6 @@ class Ingestor(HandlerInterface):
     def __init__(self, orchestrator):
         self.orchestrator = orchestrator
 
-    def handle(self, orchestrator):
+    def handle(self,):
         print("Ingestor")
-        self.orchestrator.event_finished(Event.INGEST)
+        return Event.INGEST

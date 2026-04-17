@@ -6,7 +6,7 @@ class Processor(HandlerInterface):
     def __init__(self, orchestrator):
         self.orchestrator = orchestrator
 
-    def handle(self, orchestrator):
+    def handle(self):
         print("Processor")
         # both Visual + Audio/Text done here
-        self.orchestrator.event_finished(Event.PROCESS)
+        return Event.PROCESS

@@ -3,7 +3,7 @@ from enumerations.Enumerations import *
 class Workflow:
     def __init__(self):
         self._state = State.INITIAL_STATE
-        self.transitions = {
+        self._transitions = {
             (State.INITIAL_STATE, Event.INGEST)           : State.INGESTED,
             (State.INGESTED,      Event.ANALYZE)          : State.ANALYZED,
             (State.ANALYZED,      Event.PROCESS)          : State.PROCESSED,
@@ -14,10 +14,12 @@ class Workflow:
 
     def transition(self, event):
         key = (self.state, event)
-        if key not in self.transitions:
+        if key not in self._transitions:
             raise ValueError(f"Invalid transition: {self.state} -> {event}")
-        print("Transition from", self.state.value, "to", self.transitions[key].value)
-        self.state = self.transitions[key]
+        print("Transition from", self.state.value, "to", self._transitions[key].value)
+        next_state = self._transitions[key]
+        self.state = next_state
+
 
 
     @property
