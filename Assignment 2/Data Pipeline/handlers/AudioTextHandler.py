@@ -13,7 +13,8 @@ class AudioTextHandler(HandlerInterface):
         self._audio_text_generation()
         return Event.AUDIO_TEXT_DONE
 
-    def _audio_text_generation(self, base_directory="../../../videos/movie_101"):
+    def _audio_text_generation(self):
+        base_directory = self.context.base_directory
         text_dir = os.path.join(base_directory, "text")
         audio_dir = os.path.join(base_directory, "audio")
         os.makedirs(text_dir, exist_ok=True)

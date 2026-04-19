@@ -28,7 +28,7 @@ class VisualsHandler(HandlerInterface):
         bit_rate = self._get_bitrate()
         self.context.encoding_profile = _calculate_encoding_profile(bit_rate)
 
-        # self._create_converted_videos()
+        self._create_converted_videos()
 
         self._create_save_sprite_map()
 
@@ -80,7 +80,8 @@ class VisualsHandler(HandlerInterface):
         if result.returncode != 0:
             raise RuntimeError(result.stdout)
 
-    def _create_converted_videos(self, base_directory="../../../videos/movie_101"):
+    def _create_converted_videos(self):
+        base_directory = self.context.base_directory
         video_base_directory = os.path.join(base_directory, "video")
         os.makedirs(video_base_directory, exist_ok=True)
 
@@ -131,7 +132,8 @@ class VisualsHandler(HandlerInterface):
         if result.returncode != 0:
             raise RuntimeError(result.stdout)
 
-    def _create_save_sprite_map(self, base_directory="../../../videos/movie_101"):
+    def _create_save_sprite_map(self):
+        base_directory = self.context.base_directory
         image_base_directory = os.path.join(base_directory, "images")
         os.makedirs(image_base_directory, exist_ok=True)
         image_filepath = os.path.join(image_base_directory, "sprite_map.jpg")
@@ -140,7 +142,8 @@ class VisualsHandler(HandlerInterface):
 
         self.context.visuals_images_assets["sprite_map"] = image_filepath
 
-    def _generate_periodic_keyframes(self, base_directory="../../../videos/movie_101"):
+    def _generate_periodic_keyframes(self):
+        base_directory = self.context.base_directory
         filepath_string = str(self.context.file_path)
 
         thumbnail_directory = os.path.join(base_directory, "images", "thumbnails")

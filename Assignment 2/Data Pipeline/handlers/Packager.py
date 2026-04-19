@@ -16,7 +16,8 @@ class Packager(HandlerInterface):
 
         return Event.PACKAGE
 
-    def _package(self, base_directory="../../../videos/movie_101"):
+    def _package(self):
+        base_directory = self.context.base_directory
         # Simulate encription
         self.context.drm_applied = True
         print("DRM encription successful.")
@@ -41,3 +42,5 @@ class Packager(HandlerInterface):
             json.dump(manifest_data, f, indent=4)
 
         self.context.manifest_file_path = manifest_file_path
+
+        print("Packaging successful!")

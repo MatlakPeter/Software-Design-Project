@@ -16,7 +16,8 @@ class Analyzer(HandlerInterface):
 
         return Event.ANALYZE
 
-    def _analyze(self, base_directory="../../../videos/movie_101"):
+    def _analyze(self):
+        base_directory = self.context.base_directory
         metadata_directory = os.path.join(base_directory, "metadata")
         os.makedirs(metadata_directory, exist_ok=True)
         output_file_path = os.path.join(metadata_directory, "scene_analysis.json")

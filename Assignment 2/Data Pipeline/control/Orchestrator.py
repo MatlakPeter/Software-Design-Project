@@ -8,7 +8,6 @@ from handlers.Ingestor import Ingestor
 from handlers.Analyzer import Analyzer
 from handlers.ComplianceApplier import ComplianceApplier
 from handlers.Packager import Packager
-from handlers.Finisher import Finisher
 from handlers.VisualsHandler import VisualsHandler
 
 
@@ -24,12 +23,11 @@ class Orchestrator:
                                   VisualsHandler(self.context),
                                   AudioTextHandler(self.context)],
             State.PROCESSED:     ComplianceApplier(self.context),
-            State.COMPLIANT:     Packager(self.context),
-            State.PACKAGED:      Finisher(self.context)
+            State.COMPLIANT:     Packager(self.context)
         }
 
     def do_workflow(self):
-        while self.workflow.state != State.COMPLETED:
+        while self.workflow.state != State.PACKAGED:
             curr_state = self.workflow.state
 
             if curr_state not in State:

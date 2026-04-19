@@ -6,7 +6,6 @@ class State(Enum):
     PROCESSED = "Processed" # Analyse + Visual + Audio/Text done
     COMPLIANT = "Compliant"
     PACKAGED = "Packaged"
-    COMPLETED = "Completed"
 
 class Event(Enum):
     INGEST = "Ingest"
@@ -16,4 +15,3 @@ class Event(Enum):
     PROCESSING_DONE = "Processing_done"
     APPLY_COMPLIANCE = "ApplyCompliance"
     PACKAGE = "Package"
-    FINISH = "Finish"
