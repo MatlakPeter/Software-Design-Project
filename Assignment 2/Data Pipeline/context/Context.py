@@ -13,3 +13,7 @@ class Context:
         # Visuals
         self.encoding_profile = None
         self.visual_assets = {}
+
+        # Audio/Text
+        self.text_assets = {}
+        self.audio_assets = {}
