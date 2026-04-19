@@ -17,3 +17,6 @@ class Context:
         # Audio/Text
         self.text_assets = {}
         self.audio_assets = {}
+
+        # Compliance
+        self.compliance_passed = False

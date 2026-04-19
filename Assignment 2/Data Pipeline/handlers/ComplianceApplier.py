@@ -7,5 +7,16 @@ class ComplianceApplier(HandlerInterface):
         self.context = context
 
     def handle(self):
-        print("ComplianceApplier")
+        print("=== COMPLIANCE APPLIER ===")
+
+        self._compliance_check()
+
         return Event.APPLY_COMPLIANCE
+
+    def _compliance_check(self):
+        print("Compliance: No blurring required.")
+        print("Compliance: Applying regional branding (Netflix Original)...")
+
+        self.context.compliance_passed = True
+
+        print("Compliance: Video meets all regional compliance standards.")
