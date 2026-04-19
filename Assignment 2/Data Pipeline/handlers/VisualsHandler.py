@@ -15,23 +15,22 @@ def _calculate_encoding_profile(source_bitrate_bps: int):
     }
 
 
-class Processor(HandlerInterface):
+class VisualsHandler(HandlerInterface):
     def __init__(self, context):
         self.context = context
 
     def handle(self):
         # both Visual + Audio/Text done here
-        print ("=== PROCESSOR ===")
         print("=== VISUALS ===")
 
         bit_rate = self._get_bitrate()
         self.context.encoding_profile = _calculate_encoding_profile(bit_rate)
 
-        self._create_converted_videos()
+        # self._create_converted_videos()
 
-        self._create_save_sprite_map()
+        # self._create_save_sprite_map()
 
-        return Event.PROCESS
+        return Event.VISUALS_DONE
 
     def _get_bitrate(self):
         filepath_string = str(self.context.file_path)

@@ -5,8 +5,7 @@ class Workflow:
         self._state = State.INITIAL_STATE
         self._transitions = {
             (State.INITIAL_STATE, Event.INGEST)           : State.INGESTED,
-            (State.INGESTED,      Event.ANALYZE)          : State.ANALYZED,
-            (State.ANALYZED,      Event.PROCESS)          : State.PROCESSED,
+            (State.INGESTED,      Event.PROCESSING_DONE)  : State.PROCESSED,
             (State.PROCESSED,     Event.APPLY_COMPLIANCE) : State.COMPLIANT,
             (State.COMPLIANT,     Event.PACKAGE)          : State.PACKAGED,
             (State.PACKAGED,      Event.FINISH)           : State.COMPLETED
