@@ -7,6 +7,9 @@ class Context:
         # Ingest
         self.video_metadata = None
 
+        # Analysis
+        self.analysis_assets = {}
+
         # Visuals
         self.encoding_profile = None
         self.visual_assets = {}
