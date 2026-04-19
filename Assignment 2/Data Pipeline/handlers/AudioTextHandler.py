@@ -34,6 +34,6 @@ class AudioTextHandler(HandlerInterface):
 
         self.context.text_assets["source_transcript"] = source_transcript_path
         self.context.text_assets["ro_translation"] = ro_translation_path
-        self.context.text_assets["audio"] = ro_audio_path
+        self.context.audio_assets["audio"] = ro_audio_path
 
         print("Audio Text Generation Complete.")

@@ -8,11 +8,12 @@ class Context:
         self.video_metadata = None
 
         # Analysis
-        self.analysis_assets = {}
+        self.metadata_assets = {}
 
         # Visuals
         self.encoding_profile = None
-        self.visual_assets = {}
+        self.visuals_video_assets = {}
+        self.visuals_images_assets = {}
 
         # Audio/Text
         self.text_assets = {}
@@ -20,3 +21,7 @@ class Context:
 
         # Compliance
         self.compliance_passed = False
+
+        # Packager
+        self.drm_applied = False
+        self.manifest_file_path = None

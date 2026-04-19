@@ -107,7 +107,7 @@ class VisualsHandler(HandlerInterface):
 
                 # Save the path of the generated video to Context
                 asset_key = f"{res_name}_{fmt_name}"
-                self.context.visual_assets[asset_key] = output_file_path
+                self.context.visuals_video_assets[asset_key] = output_file_path
 
     def _generate_sprite_map(self, output_image):
         filepath_string = str(self.context.file_path)
@@ -128,10 +128,10 @@ class VisualsHandler(HandlerInterface):
             raise RuntimeError(result.stdout)
 
     def _create_save_sprite_map(self, base_directory="../../../videos/movie_101"):
-        image_base_directory = os.path.join(base_directory, "image")
+        image_base_directory = os.path.join(base_directory, "images")
         os.makedirs(image_base_directory, exist_ok=True)
         image_filepath = os.path.join(image_base_directory, "sprite_map.jpg")
 
         self._generate_sprite_map(image_filepath)
 
-        self.context.visual_assets["sprite_map"] = image_filepath
+        self.context.visuals_images_assets["sprite_map"] = image_filepath

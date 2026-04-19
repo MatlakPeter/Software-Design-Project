@@ -34,6 +34,6 @@ class Analyzer(HandlerInterface):
         with open(output_file_path, 'w') as output_file:
             json.dump(dummy_data, output_file)
 
-        self.context.analysis_assets["scene_analysis"] = output_file_path
+        self.context.metadata_assets["scene_analysis"] = output_file_path
 
         print(f"Analysis completed. Saved to {output_file_path}")
