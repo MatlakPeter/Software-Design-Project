@@ -3,6 +3,8 @@ import os
 import subprocess
 from fileinput import filename
 
+from matplotlib.image import thumbnail
+
 from enumerations.Enumerations import Event
 from handlers.HandlerInterface import HandlerInterface
 
@@ -28,7 +30,9 @@ class VisualsHandler(HandlerInterface):
 
         # self._create_converted_videos()
 
-        # self._create_save_sprite_map()
+        self._create_save_sprite_map()
+
+        self._generate_periodic_keyframes()
 
         return Event.VISUALS_DONE
 
@@ -122,7 +126,7 @@ class VisualsHandler(HandlerInterface):
             "-vf", video_filter,
             output_image
         ]
-        print("Generating sprite map...")
+        print("Visuals: Generating sprite map...")
         result = subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         if result.returncode != 0:
             raise RuntimeError(result.stdout)
@@ -135,3 +139,22 @@ class VisualsHandler(HandlerInterface):
         self._generate_sprite_map(image_filepath)
 
         self.context.visuals_images_assets["sprite_map"] = image_filepath
+
+    def _generate_periodic_keyframes(self, base_directory="../../../videos/movie_101"):
+        filepath_string = str(self.context.file_path)
+
+        thumbnail_directory = os.path.join(base_directory, "images", "thumbnails")
+        os.makedirs(thumbnail_directory, exist_ok=True)
+
+        output_pattern = os.path.join(thumbnail_directory, "thumb_%03d.jpg")
+
+        command = [
+            "ffmpeg",
+            "-y",
+            "-i", filepath_string,
+            "-vf", "fps=1/1,scale=320:-1",
+            output_pattern
+        ]
+
+        print("Visuals: Extracting periodic keyframes...")
+        subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
