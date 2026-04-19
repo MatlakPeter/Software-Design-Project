@@ -50,7 +50,7 @@ class Ingestor(HandlerInterface):
             return "Error: File not found."
 
     def _validate_checksum(self):
-        valid_checksum = '052f3074e96e4c08c1cbdebe161fc6d0b0b63832b9f185692374a14955939fe6'
+        valid_checksum = 'ed29350cbdcef9d06e4b10e3dfd9076118a955c8504beb0554359738e033278d'
         actual_checksum = self._generate_sha256()
         print("Checksum: ", actual_checksum)
         if actual_checksum != valid_checksum:
@@ -89,8 +89,8 @@ class Ingestor(HandlerInterface):
             raise Exception("Ingestor: No video stream found in the master file.")
 
         required_codec = "hevc"
-        required_width = 1920
-        required_height = 1080
+        required_width = 3840
+        required_height = 2160
 
         actual_codec = video_stream.get('codec_name')
         actual_width = video_stream.get('width')
