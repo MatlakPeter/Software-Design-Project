@@ -1,14 +1,16 @@
 package core;
 
+import model.FileData;
 import repository.FileRepository;
 
 import java.io.File;
+import java.util.List;
 
 public class Indexer {
-    private static int added = 0;
-    private static int updated = 0;
-    private static int ignored = 0;
-    private static int deleted = 0; // track deletions
+    private int added = 0;
+    private int updated = 0;
+    private int ignored = 0;
+    private int deleted = 0; // track deletions
 
     private Crawler crawler;
     private FileRepository repository;
@@ -18,21 +20,8 @@ public class Indexer {
         this.repository = repository;
     }
 
-    public static void incrementAdded() {
-        added++;
-    }
-    public static void incrementUpdated() {
-        updated++;
-    }
-    public static void incrementIgnored() {
-        ignored++;
-    }
-    public static void incrementDeleted() {
-        deleted++;
-    }
-
     public void startIndexing(String rootPath) {
-        added = 0; updated = 0; ignored = 0; // Reset statistics
+        added = 0; updated = 0; ignored = 0; deleted = 0; // Reset statistics
         System.out.println("Starting index process on: " + rootPath);
 
         File rootDir = new File(rootPath);
@@ -41,9 +30,19 @@ public class Indexer {
             return;
         }
 
-        crawler.scanDirectory(rootDir);
+        List<FileData> discovered = crawler.scanDirectory(rootDir);
 
-        repository.deleteStaleFiles(crawler.getScannedPaths(), rootDir.getAbsolutePath());
+        for (FileData fileData : discovered) {
+            FileRepository.SaveStatus saveStatus= repository.saveOrUpdateFile(fileData);
+            switch (saveStatus) {
+                case ADDED   -> added++;
+                case UPDATED -> updated++;
+                case IGNORED -> ignored++;
+            }
+        }
+
+        int nr_deleted = repository.deleteStaleFiles(crawler.getScannedPaths(), rootDir.getAbsolutePath());
+        deleted += nr_deleted;
 
         generateReport();
     }

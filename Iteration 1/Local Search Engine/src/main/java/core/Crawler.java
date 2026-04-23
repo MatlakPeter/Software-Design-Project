@@ -7,7 +7,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.nio.charset.StandardCharsets;
 import java.nio.charset.Charset;
@@ -20,6 +22,10 @@ public class Crawler {
     private Set<String> scannedPaths;
 
     private int filesScannedCount; // counter for feedback while crawling
+
+    private int added = 0;
+    private int updated = 0;
+    private int ignored = 0;
 
     private static final int _1MB = 1024 * 1024;
     private static final int LARGE_FILE_SAVE_LENGTH = _1MB / 2;
@@ -45,7 +51,13 @@ public class Crawler {
         filesScannedCount = 0;
     }
 
-    public void scanDirectory(File directory) {
+    public List<FileData> scanDirectory(File directory) {
+        List<FileData> results = new ArrayList<>();
+        scanDirectoryRecursive(directory, results);
+        return results;
+    }
+
+    public void scanDirectoryRecursive(File directory, List<FileData> results) {
         File[] files = directory.listFiles();
         if (files == null) { // Error handling for permissions
             System.out.println("Warning: Access denied or not a directory -> " + directory.getAbsolutePath());
@@ -58,14 +70,12 @@ public class Crawler {
                 System.out.println("... Still scanning. Files checked: " + filesScannedCount + " (Currently at: " + file.getParent() + ")");
             }
 
-            if (Files.isSymbolicLink(file.toPath())) {
-                continue; // Prevent infinite loops
-            }
+            if (Files.isSymbolicLink(file.toPath())) { return; }
 
             if (file.isDirectory()) {
-                scanDirectory(file);
+                scanDirectoryRecursive(file, results);
             } else if (file.isFile() && isTextFile(file) && !file.getName().endsWith(ignoreExtension)) {
-                processFile(file);
+                results.add(buildFileData(file));
             }
         }
     }
@@ -80,7 +90,7 @@ public class Crawler {
         return TEXT_FILE_EXTENSIONS.contains(ext);
     }
 
-    private void processFile(File file) {
+    private FileData buildFileData(File file) {
         try {
             scannedPaths.add(file.getAbsolutePath());
             String content = "";
@@ -113,10 +123,11 @@ public class Crawler {
                     content,
                     file.lastModified()
             );
-            repository.saveOrUpdateFile(fileData);
+            return fileData;
 
         } catch (IOException e) {
              System.err.println("Could not read file: " + file.getAbsolutePath() + " | Reason: " + e.getClass().getSimpleName());
         }
+        return null;
     }
 }

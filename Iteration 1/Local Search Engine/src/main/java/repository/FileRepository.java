@@ -1,6 +1,5 @@
 package repository;
 import model.FileData;
-import core.Indexer;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -10,13 +9,15 @@ import java.util.Set;
 public class FileRepository {
     private static final String URL = "jdbc:postgresql://localhost:5432/searchengine";
     private static final String USER = "postgres";
-    private static final String PASSWORD = "PACI#203";
+    private static final String PASSWORD = "postgres";
 
     private Connection getConnection() throws SQLException {
         return DriverManager.getConnection(URL, USER, PASSWORD);
     }
 
-    public void saveOrUpdateFile(FileData file) {
+    public enum SaveStatus { ADDED, UPDATED, IGNORED }
+
+    public SaveStatus saveOrUpdateFile(FileData file) {
         String checkSql = "SELECT last_modified FROM files WHERE filepath = ?";
         String insertSql = "INSERT INTO files (filename, filepath, content, last_modified) VALUES (?, ?, ?, ?)";
         String updateSql = "UPDATE files SET filename = ?, content = ?, last_modified = ? WHERE filepath = ?";
@@ -37,10 +38,12 @@ public class FileRepository {
                         updateStmt.setLong(3, file.getLastModified());
                         updateStmt.setString(4, file.getFilepath());
                         updateStmt.executeUpdate();
-                        Indexer.incrementUpdated();
+
+                        return SaveStatus.UPDATED;
+
                     }
                 } else {
-                    Indexer.incrementIgnored(); // No change
+                    return SaveStatus.IGNORED;
                 }
             } else {
                 // File does not exist, so insert it
@@ -50,17 +53,20 @@ public class FileRepository {
                     insertStmt.setString(3, file.getContent());
                     insertStmt.setLong(4, file.getLastModified());
                     insertStmt.executeUpdate();
-                    Indexer.incrementAdded();
+                    return SaveStatus.ADDED;
                 }
             }
         } catch (SQLException e) {
             System.err.println("Database error for file: " + file.getFilepath() + " - " + e.getMessage());
         }
+        return null;
     }
 
-    public void deleteStaleFiles(Set<String> validPaths, String rootDirectory) {
+    public int deleteStaleFiles(Set<String> validPaths, String rootDirectory) {
         String selectSql = "SELECT filepath FROM files";
         String deleteSql = "DELETE FROM files WHERE filepath = ?";
+
+        int nr_deleted_files = 0;
 
         try (Connection conn = getConnection();
              Statement selectStmt = conn.createStatement();
@@ -75,12 +81,13 @@ public class FileRepository {
                 if (dbPath.startsWith(rootDirectory) && !validPaths.contains(dbPath)) {
                     deleteStmt.setString(1, dbPath);
                     deleteStmt.executeUpdate();
-                    Indexer.incrementDeleted();
+                    nr_deleted_files++;
                 }
             }
         } catch (SQLException e) {
             System.err.println("Error deleting stale files: " + e.getMessage());
         }
+        return nr_deleted_files;
     }
 
     public List<FileData> searchFiles(String query) {
