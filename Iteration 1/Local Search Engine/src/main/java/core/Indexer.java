@@ -33,6 +33,9 @@ public class Indexer {
         List<FileData> discovered = crawler.scanDirectory(rootDir);
 
         for (FileData fileData : discovered) {
+            int path_score = PathScorer.score(fileData);
+            fileData.setPath_score(path_score);
+
             FileRepository.SaveStatus saveStatus= repository.saveOrUpdateFile(fileData);
             switch (saveStatus) {
                 case ADDED   -> added++;

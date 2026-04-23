@@ -14,6 +14,7 @@ public class QueryProcessor {
 
     public void executeQuery(String query) {
         System.out.println("\nSearching for: '" + query + "'...");
+
         List<FileData> results = repository.searchFiles(query);
 
         if (results.isEmpty()) {

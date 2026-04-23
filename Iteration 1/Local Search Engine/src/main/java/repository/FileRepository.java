@@ -19,8 +19,8 @@ public class FileRepository {
 
     public SaveStatus saveOrUpdateFile(FileData file) {
         String checkSql = "SELECT last_modified FROM files WHERE filepath = ?";
-        String insertSql = "INSERT INTO files (filename, filepath, content, last_modified) VALUES (?, ?, ?, ?)";
-        String updateSql = "UPDATE files SET filename = ?, content = ?, last_modified = ? WHERE filepath = ?";
+        String insertSql = "INSERT INTO files (filename, filepath, content, last_modified, path_score) VALUES (?, ?, ?, ?, ?)";
+        String updateSql = "UPDATE files SET filename = ?, content = ?, last_modified = ?, path_score = ? WHERE filepath = ?";
 
         try (Connection conn = getConnection();
              PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
@@ -36,11 +36,11 @@ public class FileRepository {
                         updateStmt.setString(1, file.getFilename());
                         updateStmt.setString(2, file.getContent());
                         updateStmt.setLong(3, file.getLastModified());
-                        updateStmt.setString(4, file.getFilepath());
+                        updateStmt.setInt(4, file.getPath_score());
+                        updateStmt.setString(5, file.getFilepath());
                         updateStmt.executeUpdate();
 
                         return SaveStatus.UPDATED;
-
                     }
                 } else {
                     return SaveStatus.IGNORED;
@@ -52,7 +52,9 @@ public class FileRepository {
                     insertStmt.setString(2, file.getFilepath());
                     insertStmt.setString(3, file.getContent());
                     insertStmt.setLong(4, file.getLastModified());
+                    insertStmt.setInt(5, file.getPath_score());
                     insertStmt.executeUpdate();
+
                     return SaveStatus.ADDED;
                 }
             }
