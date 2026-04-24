@@ -14,6 +14,13 @@ public class FileData {
         this.lastModified = lastModified;
         this.path_score = 0;
     }
+    public FileData(String filename, String filepath, String content, long lastModified, int path_score) {
+        this.filename = filename;
+        this.filepath = filepath;
+        this.content = content;
+        this.lastModified = lastModified;
+        this.path_score = path_score;
+    }
 
     // Getters
     public String getFilename() {
@@ -29,10 +36,10 @@ public class FileData {
         return lastModified;
     }
 
-    public int getPath_score() {
+    public int getPathScore() {
         return path_score;
     }
-    public void setPath_score(int path_score) {
+    public void setPathScore(int path_score) {
         this.path_score = path_score;
     }
 }

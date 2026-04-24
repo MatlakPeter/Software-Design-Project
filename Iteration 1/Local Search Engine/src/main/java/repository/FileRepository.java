@@ -1,4 +1,5 @@
 package repository;
+import core.ParsedQuery;
 import model.FileData;
 
 import java.sql.*;
@@ -36,7 +37,7 @@ public class FileRepository {
                         updateStmt.setString(1, file.getFilename());
                         updateStmt.setString(2, file.getContent());
                         updateStmt.setLong(3, file.getLastModified());
-                        updateStmt.setInt(4, file.getPath_score());
+                        updateStmt.setInt(4, file.getPathScore());
                         updateStmt.setString(5, file.getFilepath());
                         updateStmt.executeUpdate();
 
@@ -52,7 +53,7 @@ public class FileRepository {
                     insertStmt.setString(2, file.getFilepath());
                     insertStmt.setString(3, file.getContent());
                     insertStmt.setLong(4, file.getLastModified());
-                    insertStmt.setInt(5, file.getPath_score());
+                    insertStmt.setInt(5, file.getPathScore());
                     insertStmt.executeUpdate();
 
                     return SaveStatus.ADDED;
@@ -92,26 +93,42 @@ public class FileRepository {
         return nr_deleted_files;
     }
 
-    public List<FileData> searchFiles(String query) {
+    public List<FileData> searchFiles(ParsedQuery query) {
         List<FileData> results = new ArrayList<>();
 
-        String searchSql = """
-            SELECT filename, filepath, content, last_modified,
-                   CASE WHEN filename ILIKE ? THEN 1 ELSE 0 END AS rank
-            FROM files
-            WHERE filename ILIKE ? OR to_tsvector('simple', content) @@ plainto_tsquery('simple', ?)
-            ORDER BY rank DESC
-            """;
+        List<String> conditions = new ArrayList<>();
+        List<String> params = new ArrayList<>();
+
+        for (String term : query.getContentTerms()){
+            conditions.add("to_tsvector('simple', content) @@ plainto_tsquery('simple', ?)");
+            params.add(term);
+        }
+        for (String term : query.getPathTerms()){
+            conditions.add("filepath ILIKE ?");
+            params.add("%" + term + "%");
+        }
+        for (String term : query.getFreeTerms()){
+            conditions.add("(filename ILIKE ? OR to_tsvector('simple', content) @@ plainto_tsquery('simple', ?))");
+            params.add("%" + term + "%");
+            params.add(term);
+        }
+
+        if (conditions.isEmpty()) return List.of();
+
+        String searchSql = "SELECT filename, filepath, content, last_modified, path_score "
+                         + "FROM files WHERE "
+                         + String.join(" AND ", conditions) // AND between all conditions
+                         + " ORDER BY path_score DESC";
+
 
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(searchSql)) {
 
-
             String nameQuery = "%" + query + "%"; // wrap the query in '%' for the ILIKE search
 
-            pstmt.setString(1, nameQuery); // For the rank condition
-            pstmt.setString(2, nameQuery); // For the WHERE filename condition
-            pstmt.setString(3, query);     // For the full-text content search
+            for (int i = 0; i < params.size(); i++) {
+                pstmt.setString(i + 1, params.get(i)); // JDBC is 1-indexed
+            }
 
             ResultSet rs = pstmt.executeQuery();
 
@@ -120,7 +137,8 @@ public class FileRepository {
                         rs.getString("filename"),
                         rs.getString("filepath"),
                         rs.getString("content"),
-                        rs.getLong("last_modified")
+                        rs.getLong("last_modified"),
+                        rs.getInt("path_score")
                 ));
             }
         } catch (SQLException e) {

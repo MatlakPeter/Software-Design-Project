@@ -34,7 +34,7 @@ public class Indexer {
 
         for (FileData fileData : discovered) {
             int path_score = PathScorer.score(fileData);
-            fileData.setPath_score(path_score);
+            fileData.setPathScore(path_score);
 
             FileRepository.SaveStatus saveStatus= repository.saveOrUpdateFile(fileData);
             switch (saveStatus) {
