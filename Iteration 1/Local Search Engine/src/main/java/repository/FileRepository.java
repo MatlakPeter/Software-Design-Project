@@ -115,16 +115,23 @@ public class FileRepository {
 
         if (conditions.isEmpty()) return List.of();
 
+        String sortStrategy;
+        switch (query.getSortStrategy()){
+            case SCORE -> sortStrategy = "ORDER BY path_score DESC";
+            case NAME -> sortStrategy = "ORDER BY filename ASC";
+            case DATE_MODIFIED -> sortStrategy = "ORDER BY last_modified DESC";
+            default -> sortStrategy = "ORDER BY path_score DESC";
+        }
+
         String searchSql = "SELECT filename, filepath, content, last_modified, path_score "
                          + "FROM files WHERE "
                          + String.join(" AND ", conditions) // AND between all conditions
-                         + " ORDER BY path_score DESC";
+                         + " " + sortStrategy;
 
 
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(searchSql)) {
 
-            String nameQuery = "%" + query + "%"; // wrap the query in '%' for the ILIKE search
 
             for (int i = 0; i < params.size(); i++) {
                 pstmt.setString(i + 1, params.get(i)); // JDBC is 1-indexed

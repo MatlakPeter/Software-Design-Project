@@ -7,11 +7,15 @@ public class ParsedQuery {
     private List<String> contentTerms;
     private List<String> pathTerms;
     private List<String> freeTerms;
+    private SortStrategy sortStrategy;
+
+    public enum SortStrategy { SCORE, NAME, DATE_MODIFIED }
 
     public ParsedQuery(){
         contentTerms = new ArrayList<String>();
         pathTerms = new ArrayList<String>();
         freeTerms = new ArrayList<String>();
+        sortStrategy = SortStrategy.SCORE;
     }
 
     public void addContentTerm(String term){
@@ -23,6 +27,9 @@ public class ParsedQuery {
     public void addFreeTerm(String term){
         freeTerms.add(term);
     }
+    public void setSortStrategy(SortStrategy sortStrategy){
+        this.sortStrategy = sortStrategy;
+    }
     public List<String> getContentTerms(){
         return contentTerms;
     }
@@ -31,6 +38,9 @@ public class ParsedQuery {
     }
     public List<String> getFreeTerms(){
         return freeTerms;
+    }
+    public SortStrategy getSortStrategy(){
+        return sortStrategy;
     }
 
 }

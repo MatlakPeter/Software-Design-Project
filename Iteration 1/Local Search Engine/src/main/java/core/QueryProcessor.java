@@ -32,6 +32,7 @@ public class QueryProcessor {
             System.out.println("Path: " + file.getFilepath());
             System.out.println("Preview:\n" + PreviewGenerator.generatePreview(file.getContent()));
             System.out.println("Path Score: " + file.getPathScore());
+            System.out.println("Last Modified: " + file.getFormattedDate());
             System.out.println("-".repeat(40));
         }
     }

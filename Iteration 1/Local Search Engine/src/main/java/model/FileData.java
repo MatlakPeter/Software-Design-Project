@@ -1,5 +1,9 @@
 package model;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+
 public class FileData {
     private String filename;
     private String filepath;
@@ -41,5 +45,12 @@ public class FileData {
     }
     public void setPathScore(int path_score) {
         this.path_score = path_score;
+    }
+    public String getFormattedDate() {
+        Instant instant = Instant.ofEpochMilli(lastModified);
+        return DateTimeFormatter
+                .ofPattern("yyyy-MM-dd HH:mm:ss")
+                .withZone(ZoneId.systemDefault())
+                .format(instant);
     }
 }
