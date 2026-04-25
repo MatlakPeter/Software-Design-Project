@@ -18,7 +18,7 @@ public class QueryProcessor {
         this.observers = new ArrayList<SearchObserver>();
     }
 
-    public void executeQuery(String query) {
+    public List<FileData> executeQuery(String query) {
         System.out.println("\nSearching for: '" + query + "'...");
 
         ParsedQuery parsedQuery = queryParser.parse(query);
@@ -27,25 +27,24 @@ public class QueryProcessor {
 
         if (results.isEmpty()) {
             System.out.println("No results found.");
-            for (SearchObserver observer : observers) {
-                observer.onSearchPerformed(query, parsedQuery, results);
-            }
-            return;
-        }
 
-        System.out.println("Found " + results.size() + " result(s):\n");
-        for (FileData file : results) {
-            System.out.println("File: " + file.getFilename());
-            System.out.println("Path: " + file.getFilepath());
-            System.out.println("Preview:\n" + PreviewGenerator.generatePreview(file.getContent()));
-            System.out.println("Path Score: " + file.getPathScore());
-            System.out.println("Last Modified: " + file.getFormattedDate());
-            System.out.println("-".repeat(40));
+        } else {
+            System.out.println("Found " + results.size() + " result(s):\n");
+            for (FileData file : results) {
+                System.out.println("File: " + file.getFilename());
+                System.out.println("Path: " + file.getFilepath());
+                System.out.println("Preview:\n" + PreviewGenerator.generatePreview(file.getContent()));
+                System.out.println("Path Score: " + file.getPathScore());
+                System.out.println("Last Modified: " + file.getFormattedDate());
+                System.out.println("-".repeat(40));
+            }
         }
 
         for (SearchObserver observer : observers) {
             observer.onSearchPerformed(query, parsedQuery, results);
         }
+
+        return results;
     }
 
     public void addObserver(SearchObserver observer) {

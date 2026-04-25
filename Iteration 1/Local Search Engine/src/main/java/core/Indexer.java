@@ -2,73 +2,68 @@ package core;
 
 import model.FileData;
 import repository.FileRepository;
+import ui.SearchEngineUI;
 
 import java.io.File;
 import java.util.List;
 
 public class Indexer {
+    private int added = 0;
+    private int updated = 0;
+    private int ignored = 0;
+    private int deleted = 0; // track deletions
 
-    // ── NEW: return this instead of printing to stdout ─────────────────────
-    public static class IndexReport {
-        public int added, updated, ignored, deleted;
-    }
-
-    private Crawler        crawler;
+    private Crawler crawler;
     private FileRepository repository;
 
     public Indexer(Crawler crawler, FileRepository repository) {
-        this.crawler    = crawler;
+        this.crawler = crawler;
         this.repository = repository;
     }
 
-    /**
-     * Indexes the given root path.
-     *
-     * CHANGED: now returns an IndexReport instead of printing.
-     * The CLI (Main.java) can still print; the REST layer (WebServer.java)
-     * can return it as JSON.
-     */
-    public IndexReport startIndexing(String rootPath) {
-        IndexReport report = new IndexReport();
-
+    public SearchEngineUI.IndexReport runIndexing(String rootPath) {
+        added = 0; updated = 0; ignored = 0; deleted = 0; // Reset statistics
         System.out.println("Starting index process on: " + rootPath);
 
         File rootDir = new File(rootPath);
         if (!rootDir.exists() || !rootDir.isDirectory()) {
             System.out.println("Invalid directory path.");
-            return report;
+            return null;
         }
 
         List<FileData> discovered = crawler.scanDirectory(rootDir);
 
         for (FileData fileData : discovered) {
-            if (fileData == null) continue;                // null from unreadable files
-            int pathScore = PathScorer.score(fileData);
-            fileData.setPathScore(pathScore);
+            int path_score = PathScorer.score(fileData);
+            fileData.setPathScore(path_score);
 
-            FileRepository.SaveStatus status = repository.saveOrUpdateFile(fileData);
-            if (status == null) continue;
-            switch (status) {
-                case ADDED   -> report.added++;
-                case UPDATED -> report.updated++;
-                case IGNORED -> report.ignored++;
+            FileRepository.SaveStatus saveStatus= repository.saveOrUpdateFile(fileData);
+            switch (saveStatus) {
+                case ADDED   -> added++;
+                case UPDATED -> updated++;
+                case IGNORED -> ignored++;
             }
         }
 
-        report.deleted = repository.deleteStaleFiles(
-                crawler.getScannedPaths(), rootDir.getAbsolutePath());
+        int nr_deleted = repository.deleteStaleFiles(crawler.getScannedPaths(), rootDir.getAbsolutePath());
+        deleted += nr_deleted;
 
-        printReport(report);
+        generateReport();
+
+        SearchEngineUI.IndexReport report = new SearchEngineUI.IndexReport();
+        report.added   = added;
+        report.updated = updated;
+        report.deleted = deleted;
+        report.ignored = ignored;
         return report;
     }
 
-    // Kept for CLI convenience
-    private void printReport(IndexReport r) {
+    private void generateReport() {
         System.out.println("\n--- Indexing Complete ---");
-        System.out.println("New files added:        " + r.added);
-        System.out.println("Existing files updated:  " + r.updated);
-        System.out.println("Files deleted from DB:   " + r.deleted);
-        System.out.println("Files unmodified:        " + r.ignored);
+        System.out.println("New files added: " + added);
+        System.out.println("Existing files updated: " + updated);
+        System.out.println("Files deleted from DB: " + deleted);
+        System.out.println("Files unmodified (ignored): " + ignored);
         System.out.println("-------------------------\n");
     }
 }
