@@ -17,3 +17,9 @@ CREATE INDEX content_idx ON files USING GIN (to_tsvector('simple', content));
 
 -- GIN index for filename trigram search
 CREATE INDEX filename_trgm_idx ON files USING GIN (filename gin_trgm_ops);
+
+-- For Query Suggestion
+CREATE TABLE search_history (
+    query VARCHAR(255) PRIMARY KEY,
+    search_count INT NOT NULL DEFAULT 1
+);

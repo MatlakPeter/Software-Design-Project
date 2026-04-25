@@ -153,4 +153,40 @@ public class FileRepository {
         }
         return results;
     }
+
+    public void recordSearchQuery(String query) {
+        // insert the query, but if it exists, increment the count
+        String sql = "INSERT INTO search_history (query, search_count) VALUES (?, 1) " +
+                     "ON CONFLICT (query) DO UPDATE SET search_count = search_history.search_count + 1";
+
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, query);
+            pstmt.executeUpdate();
+
+        } catch (SQLException e) {
+            System.err.println("Database error recording search history: " + e.getMessage());
+        }
+    }
+
+    public List<String> getTopSearchQueries(int limit) {
+        List<String> suggestions = new ArrayList<>();
+        String sql = "SELECT query FROM search_history ORDER BY search_count DESC LIMIT ?";
+
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, limit);
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                suggestions.add(rs.getString("query"));
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Database error fetching suggestions: " + e.getMessage());
+        }
+        return suggestions;
+    }
 }

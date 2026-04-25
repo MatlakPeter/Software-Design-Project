@@ -1,17 +1,21 @@
 package core;
 
 import model.FileData;
+import observer.SearchObserver;
 import repository.FileRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class QueryProcessor {
     private FileRepository repository;
     private QueryParser queryParser;
+    private List<SearchObserver> observers;
 
     public QueryProcessor(FileRepository repository) {
         this.repository = repository;
         this.queryParser = new QueryParser();
+        this.observers = new ArrayList<SearchObserver>();
     }
 
     public void executeQuery(String query) {
@@ -20,6 +24,10 @@ public class QueryProcessor {
         ParsedQuery parsedQuery = queryParser.parse(query);
 
         List<FileData> results = repository.searchFiles(parsedQuery);
+
+        for (SearchObserver observer : observers) {
+            observer.onSearchPerformed(query, parsedQuery, results);
+        }
 
         if (results.isEmpty()) {
             System.out.println("No results found.");
@@ -35,5 +43,11 @@ public class QueryProcessor {
             System.out.println("Last Modified: " + file.getFormattedDate());
             System.out.println("-".repeat(40));
         }
+
+
+    }
+
+    public void addObserver(SearchObserver observer) {
+        observers.add(observer);
     }
 }

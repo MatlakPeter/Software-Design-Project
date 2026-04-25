@@ -3,8 +3,10 @@ package app;
 import core.Crawler;
 import core.Indexer;
 import core.QueryProcessor;
+import observer.SearchHistoryManager;
 import repository.FileRepository;
 
+import java.util.List;
 import java.util.Scanner;
 
 public class Main {
@@ -12,6 +14,9 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
         FileRepository repository = new FileRepository();
         QueryProcessor queryProcessor = new QueryProcessor(repository);
+
+        SearchHistoryManager historyManager = new SearchHistoryManager(repository);
+        queryProcessor.addObserver(historyManager);
 
         System.out.println("=== Local File Search Engine ===");
 
@@ -38,6 +43,13 @@ public class Main {
         // Search Loop
         System.out.println("\n--- Search Mode ---");
         while (true) {
+            System.out.println("=== NEW SEARCH ===");
+            // fetch and display the top 3 suggested queries from the database
+            List<String> suggestions = historyManager.getTopSuggestions(3);
+            if (!suggestions.isEmpty()) {
+                System.out.println("Popular searches: " +String.join(", ", suggestions));
+            }
+
             System.out.print("Enter search query (or type 'exit' to quit): ");
             String query = scanner.nextLine();
 
