@@ -3,6 +3,7 @@ package app;
 import core.Crawler;
 import core.Indexer;
 import core.QueryProcessor;
+import observer.FilePopularityScorer;
 import observer.SearchHistoryManager;
 import repository.FileRepository;
 
@@ -17,6 +18,8 @@ public class Main {
 
         SearchHistoryManager historyManager = new SearchHistoryManager(repository);
         queryProcessor.addObserver(historyManager);
+        FilePopularityScorer popularityScorer = new FilePopularityScorer(repository);
+        queryProcessor.addObserver(popularityScorer);
 
         System.out.println("=== Local File Search Engine ===");
 

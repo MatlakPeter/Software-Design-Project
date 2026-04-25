@@ -9,13 +9,13 @@ public class ParsedQuery {
     private List<String> freeTerms;
     private SortStrategy sortStrategy;
 
-    public enum SortStrategy { SCORE, NAME, DATE_MODIFIED }
+    public enum SortStrategy { SCORE, NAME, DATE_MODIFIED, DEFAULT }
 
     public ParsedQuery(){
         contentTerms = new ArrayList<String>();
         pathTerms = new ArrayList<String>();
         freeTerms = new ArrayList<String>();
-        sortStrategy = SortStrategy.SCORE;
+        sortStrategy = SortStrategy.DEFAULT;
     }
 
     public void addContentTerm(String term){

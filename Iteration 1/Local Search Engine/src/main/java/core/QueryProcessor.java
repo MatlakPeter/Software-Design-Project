@@ -25,12 +25,11 @@ public class QueryProcessor {
 
         List<FileData> results = repository.searchFiles(parsedQuery);
 
-        for (SearchObserver observer : observers) {
-            observer.onSearchPerformed(query, parsedQuery, results);
-        }
-
         if (results.isEmpty()) {
             System.out.println("No results found.");
+            for (SearchObserver observer : observers) {
+                observer.onSearchPerformed(query, parsedQuery, results);
+            }
             return;
         }
 
@@ -44,7 +43,9 @@ public class QueryProcessor {
             System.out.println("-".repeat(40));
         }
 
-
+        for (SearchObserver observer : observers) {
+            observer.onSearchPerformed(query, parsedQuery, results);
+        }
     }
 
     public void addObserver(SearchObserver observer) {

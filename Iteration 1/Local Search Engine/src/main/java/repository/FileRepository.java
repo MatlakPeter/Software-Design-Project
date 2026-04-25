@@ -120,7 +120,7 @@ public class FileRepository {
             case SCORE -> sortStrategy = "ORDER BY path_score DESC";
             case NAME -> sortStrategy = "ORDER BY filename ASC";
             case DATE_MODIFIED -> sortStrategy = "ORDER BY last_modified DESC";
-            default -> sortStrategy = "ORDER BY path_score DESC";
+            default -> sortStrategy = "ORDER BY (path_score + history_boost) DESC";
         }
 
         String searchSql = "SELECT filename, filepath, content, last_modified, path_score "
@@ -188,5 +188,27 @@ public class FileRepository {
             System.err.println("Database error fetching suggestions: " + e.getMessage());
         }
         return suggestions;
+    }
+
+    public void updateFileHistoryBoost(List<FileData> results) {
+        if (results.isEmpty()) return;
+
+        String sql = "UPDATE files " +
+                "SET history_boost = history_boost + 1 " +
+                "WHERE filepath = ?";
+
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            for (FileData fileData : results) {
+                pstmt.setString(1, fileData.getFilepath());
+                pstmt.addBatch();
+            }
+
+            pstmt.executeBatch();  // execute all updates at once
+
+        } catch (SQLException e) {
+            System.err.println("Database error updating history_boost: " + e.getMessage());
+        }
     }
 }
