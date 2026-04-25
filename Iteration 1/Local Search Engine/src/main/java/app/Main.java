@@ -12,8 +12,26 @@ import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
+
         FileRepository repository = new FileRepository();
+
+        // ── NEW: pass --server (or -s) to start the REST API instead of CLI ──
+        boolean serverMode = args.length > 0 &&
+                (args[0].equals("--server") || args[0].equals("-s"));
+
+        if (serverMode) {
+            // Start the REST server; the UI is served from index.html separately
+            WebServer server = new WebServer(repository);
+            server.start(8080);
+
+            // Keep the main thread alive
+            try { Thread.currentThread().join(); }
+            catch (InterruptedException ignored) {}
+            return;
+        }
+
+        // ── Original CLI mode (unchanged) ─────────────────────────────────
+        Scanner scanner = new Scanner(System.in);
         QueryProcessor queryProcessor = new QueryProcessor(repository);
 
         SearchHistoryManager historyManager = new SearchHistoryManager(repository);
@@ -38,19 +56,17 @@ public class Main {
             Indexer indexer = new Indexer(crawler, repository);
 
             System.out.println("\nIndexing started...");
-            indexer.startIndexing(rootDir);
+            indexer.startIndexing(rootDir); // report is printed inside startIndexing
         } else {
             System.out.println("Skipping indexing. Using existing database for searches.");
         }
 
-        // Search Loop
         System.out.println("\n--- Search Mode ---");
         while (true) {
             System.out.println("=== NEW SEARCH ===");
-            // fetch and display the top 3 suggested queries from the database
             List<String> suggestions = historyManager.getTopSuggestions(3);
             if (!suggestions.isEmpty()) {
-                System.out.println("Popular searches: " +String.join(", ", suggestions));
+                System.out.println("Popular searches: " + String.join(", ", suggestions));
             }
 
             System.out.print("Enter search query (or type 'exit' to quit): ");
