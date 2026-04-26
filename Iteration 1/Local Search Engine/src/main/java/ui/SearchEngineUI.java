@@ -281,12 +281,12 @@ public class SearchEngineUI extends JFrame {
 
         // Inject sort prefix if the combo differs from Default
         String sortPrefix = switch (sortCombo.getSelectedIndex()) {
-            case 1 -> "sort:score ";
-            case 2 -> "sort:name ";
-            case 3 -> "sort:date ";
+            case 1 -> " sort:score";
+            case 2 -> " sort:name";
+            case 3 -> " sort:date";
             default -> "";
         };
-        String fullQuery = sortPrefix + raw;
+        String fullQuery = raw + sortPrefix;
 
         statusLabel.setText("Searching…");
         resultsPanel.removeAll();
@@ -418,11 +418,16 @@ public class SearchEngineUI extends JFrame {
     // ── Suggestion chips ──────────────────────────────────────────────────────
 
     private void refreshSuggestions() {
-        List<String> suggestions = historyManager.getTopSuggestions(5);
+        String prefix = searchField.getText().trim();
+        List<String> suggestions = prefix.length() < 2
+            ? historyManager.getTopSuggestions(5)
+            : historyManager.getPredictions(prefix, 5);
+
+
         suggestionsPanel.removeAll();
 
         if (!suggestions.isEmpty()) {
-            JLabel label = new JLabel("Popular: ");
+            JLabel label = new JLabel("Suggested queries: ");
             label.setFont(FONT_SMALL);
             label.setForeground(TEXT_MUT);
             suggestionsPanel.add(label);

@@ -211,4 +211,44 @@ public class FileRepository {
             System.err.println("Database error updating history_boost: " + e.getMessage());
         }
     }
+
+    // Query Prediction:
+    public List<String[]> loadAllPredictions() {
+        List<String[]> rows = new ArrayList<>();
+        String sql = "SELECT prefix, completion, hits FROM query_predictor";
+
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                rows.add(new String[]{
+                    rs.getString("prefix"),
+                    rs.getString("completion"),
+                    String.valueOf(rs.getInt("hits"))
+                });
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error loading predictions: " + e.getMessage());
+        }
+        return rows;
+    }
+
+    public void upsertPrediction(String prefix, String completion) {
+        String sql = "INSERT INTO query_predictor (prefix, completion, hits) VALUES (?, ?, 1) " +
+                "ON CONFLICT (prefix, completion) DO UPDATE " +
+                "SET hits = query_predictor.hits + 1";
+
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, prefix);
+            pstmt.setString(2, completion);
+            pstmt.executeUpdate();
+
+        } catch (SQLException e) {
+            System.err.println("Error upserting prediction: " + e.getMessage());
+        }
+    }
 }

@@ -34,3 +34,13 @@ CREATE TABLE search_history (
 );
 
 ALTER TABLE files ADD COLUMN history_boost INT DEFAULT 0 NOT NULL;
+
+-- QUERY PREDICTION
+CREATE TABLE query_predictor (
+     prefix     TEXT NOT NULL,
+     completion TEXT NOT NULL,
+     hits       INT  NOT NULL DEFAULT 1,
+     PRIMARY KEY (prefix, completion)
+);
+
+CREATE INDEX idx_query_predictor_prefix ON query_predictor (prefix);
