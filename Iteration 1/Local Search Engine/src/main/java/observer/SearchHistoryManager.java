@@ -28,7 +28,7 @@ public class SearchHistoryManager implements SearchObserver{
     @Override
     public void onSearchPerformed(String rawQuery, ParsedQuery parsedQuery, List<FileData> results) {
         // save queries that are not empty
-        if (rawQuery == null && rawQuery.trim().isEmpty()) return;
+        if (rawQuery == null || rawQuery.trim().isEmpty()) return;
 
         repository.recordSearchQuery(rawQuery);
 
