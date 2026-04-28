@@ -2,6 +2,8 @@ package observer;
 
 import core.ParsedQuery;
 import model.FileData;
+import query_prediction.PredictorRepository;
+import query_prediction.PredictorRepositoryProxy;
 import repository.FileRepository;
 
 import java.util.HashMap;
@@ -10,19 +12,11 @@ import java.util.Map;
 
 public class SearchHistoryManager implements SearchObserver{
     private FileRepository repository;
-    private Map<String, Map<String, Integer>> prefixIndex;
+    private PredictorRepository predictorRepository;
 
     public SearchHistoryManager(FileRepository repository) {
         this.repository = repository;
-        this.prefixIndex = new HashMap<>();
-
-        // Load query_predictor into prefixIndex
-        for (String[] row : repository.loadAllPredictions()){
-            String prefix = row[0];
-            String completion = row[1];
-            int hits = Integer.parseInt(row[2]);
-            prefixIndex.computeIfAbsent(prefix, k -> new HashMap<>()).put(completion, hits);
-        }
+        this.predictorRepository = new PredictorRepositoryProxy(repository);
     }
 
     @Override
@@ -35,19 +29,12 @@ public class SearchHistoryManager implements SearchObserver{
         // Update prefixIndex and query_predictor table
         for (int len = 2; len <= rawQuery.length(); len++) {
             String prefix = rawQuery.substring(0, len);
-            prefixIndex.computeIfAbsent(prefix, k -> new HashMap<>()).merge(rawQuery, 1, Integer::sum);
-
-            repository.upsertPrediction(prefix, rawQuery);
+            predictorRepository.upsertPrediction(prefix, rawQuery);
         }
     }
 
     public List<String> getPredictions(String prefix, int limit){
-        Map<String, Integer> completions = prefixIndex.getOrDefault(prefix, Map.of());
-        return completions.entrySet().stream()
-                          .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
-                          .limit(limit)
-                          .map(Map.Entry::getKey)
-                          .toList();
+        return predictorRepository.getPredictions(prefix, limit);
     }
 
     public List<String> getTopSuggestions(int limit){
