@@ -3,6 +3,10 @@ package ui;
 import core.Crawler;
 import core.Indexer;
 import core.QueryProcessor;
+import core.query_builder.BaseQueryBuilder;
+import core.query_builder.QueryBuilder;
+import core.query_builder.SanitizationDecorator;
+import core.query_builder.WordCorrectionDecorator;
 import model.FileData;
 import observer.FilePopularityScorer;
 import observer.SearchHistoryManager;
@@ -70,9 +74,11 @@ public class SearchEngineUI extends JFrame {
 
     // ─────────────────────────────────────────────────────────────────────────
 
+    private static final QueryBuilder queryBuilderPipeline = new WordCorrectionDecorator(new SanitizationDecorator(new BaseQueryBuilder()));
+
     public SearchEngineUI() {
         repository    = new FileRepository();
-        queryProcessor = new QueryProcessor(repository);
+        queryProcessor = new QueryProcessor(repository, queryBuilderPipeline);
         historyManager = new SearchHistoryManager(repository);
         queryProcessor.addObserver(historyManager);
         queryProcessor.addObserver(new FilePopularityScorer(repository));

@@ -1,5 +1,7 @@
 package core;
 
+import core.query_builder.BaseQueryBuilder;
+import core.query_builder.QueryBuilder;
 import model.FileData;
 import observer.SearchObserver;
 import repository.FileRepository;
@@ -10,18 +12,25 @@ import java.util.List;
 public class QueryProcessor {
     private FileRepository repository;
     private QueryParser queryParser;
+    private QueryBuilder queryBuilder;
     private List<SearchObserver> observers;
 
     public QueryProcessor(FileRepository repository) {
+        this(repository, new BaseQueryBuilder());
+    }
+
+    public QueryProcessor(FileRepository repository, QueryBuilder queryBuilder) {
         this.repository = repository;
         this.queryParser = new QueryParser();
+        this.queryBuilder = queryBuilder;
         this.observers = new ArrayList<SearchObserver>();
     }
 
     public List<FileData> executeQuery(String query) {
-        System.out.println("\nSearching for: '" + query + "'...");
+        String processedQuery = queryBuilder.build(query);
+        System.out.println("\nSearching for: '" + processedQuery + "'...");
 
-        ParsedQuery parsedQuery = queryParser.parse(query);
+        ParsedQuery parsedQuery = queryParser.parse(processedQuery);
 
         List<FileData> results = repository.searchFiles(parsedQuery);
 
