@@ -33,6 +33,10 @@ public class Indexer {
 
         List<FileData> discovered = crawler.scanDirectory(rootDir);
 
+        System.out.println("Scanned: " + discovered.size());
+        System.out.println("Saving to the database...");
+        int save_count = 0;
+
         for (FileData fileData : discovered) {
             int path_score = PathScorer.score(fileData);
             fileData.setPathScore(path_score);
@@ -42,6 +46,11 @@ public class Indexer {
                 case ADDED   -> added++;
                 case UPDATED -> updated++;
                 case IGNORED -> ignored++;
+            }
+
+            save_count++;
+            if (save_count % 1000 == 0) {
+                System.out.println("Saved " + save_count + " of " + discovered.size() + ".");
             }
         }
 

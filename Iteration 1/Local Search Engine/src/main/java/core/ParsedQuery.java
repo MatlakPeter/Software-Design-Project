@@ -6,6 +6,7 @@ import java.util.List;
 public class ParsedQuery {
     private List<String> contentTerms;
     private List<String> pathTerms;
+    private List<String> colorTerms;
     private List<String> freeTerms;
     private SortStrategy sortStrategy;
 
@@ -14,6 +15,7 @@ public class ParsedQuery {
     public ParsedQuery(){
         contentTerms = new ArrayList<String>();
         pathTerms = new ArrayList<String>();
+        colorTerms = new ArrayList<String>();
         freeTerms = new ArrayList<String>();
         sortStrategy = SortStrategy.DEFAULT;
     }
@@ -27,6 +29,9 @@ public class ParsedQuery {
     public void addFreeTerm(String term){
         freeTerms.add(term);
     }
+    public void addColorTerm(String term){
+        colorTerms.add(term);
+    }
     public void setSortStrategy(SortStrategy sortStrategy){
         this.sortStrategy = sortStrategy;
     }
@@ -38,6 +43,9 @@ public class ParsedQuery {
     }
     public List<String> getFreeTerms(){
         return freeTerms;
+    }
+    public List<String> getColorTerms() {
+        return colorTerms;
     }
     public SortStrategy getSortStrategy(){
         return sortStrategy;

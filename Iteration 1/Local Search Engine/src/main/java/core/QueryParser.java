@@ -7,17 +7,19 @@ public class QueryParser {
         String[] tokens = rawQuery.trim().split("\\s+"); // split on whitespace
 
         for (String token : tokens) {
-            if (token.startsWith("content:")){
+            if (token.startsWith("content:")) {
                 parsed.addContentTerm(token.substring("content:".length()));
-            } else if (token.startsWith("path:")){
+            } else if (token.startsWith("path:")) {
                 parsed.addPathTerm(token.substring("path:".length()));
-            } else if (token.startsWith("sort:")){
+            } else if (token.startsWith("color:")) {
+                parsed.addColorTerm(token.substring("color:".length()).toLowerCase());
+            } else if (token.startsWith("sort:")) {
                 String substring = token.substring("sort:".length());
-                if (substring.toLowerCase().startsWith("score")){
+                if (substring.toLowerCase().startsWith("score")) {
                     parsed.setSortStrategy(ParsedQuery.SortStrategy.SCORE);
-                } else if (substring.toLowerCase().startsWith("name")){
+                } else if (substring.toLowerCase().startsWith("name")) {
                     parsed.setSortStrategy(ParsedQuery.SortStrategy.NAME);
-                } else if (substring.toLowerCase().startsWith("date")){
+                } else if (substring.toLowerCase().startsWith("date")) {
                     parsed.setSortStrategy(ParsedQuery.SortStrategy.DATE_MODIFIED);
                 } // otherwise it remains the default
             } else {

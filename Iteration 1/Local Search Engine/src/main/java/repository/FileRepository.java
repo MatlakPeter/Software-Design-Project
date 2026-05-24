@@ -19,9 +19,11 @@ public class FileRepository {
     public enum SaveStatus { ADDED, UPDATED, IGNORED }
 
     public SaveStatus saveOrUpdateFile(FileData file) {
-        String checkSql = "SELECT last_modified FROM files WHERE filepath = ?";
-        String insertSql = "INSERT INTO files (filename, filepath, content, last_modified, path_score) VALUES (?, ?, ?, ?, ?)";
-        String updateSql = "UPDATE files SET filename = ?, content = ?, last_modified = ?, path_score = ? WHERE filepath = ?";
+        String checkSql  = "SELECT last_modified FROM files WHERE filepath = ?";
+        String insertSql = "INSERT INTO files (filename, filepath, content, last_modified, path_score, dominant_color) "
+                + "VALUES (?, ?, ?, ?, ?, ?)";
+        String updateSql = "UPDATE files SET filename = ?, content = ?, last_modified = ?, path_score = ?, dominant_color = ? "
+                + "WHERE filepath = ?";
 
         try (Connection conn = getConnection();
              PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
@@ -38,7 +40,8 @@ public class FileRepository {
                         updateStmt.setString(2, file.getContent());
                         updateStmt.setLong(3, file.getLastModified());
                         updateStmt.setInt(4, file.getPathScore());
-                        updateStmt.setString(5, file.getFilepath());
+                        updateStmt.setString(5, file.getDominantColor());
+                        updateStmt.setString(6, file.getFilepath());
                         updateStmt.executeUpdate();
 
                         return SaveStatus.UPDATED;
@@ -54,6 +57,7 @@ public class FileRepository {
                     insertStmt.setString(3, file.getContent());
                     insertStmt.setLong(4, file.getLastModified());
                     insertStmt.setInt(5, file.getPathScore());
+                    insertStmt.setString(6, file.getDominantColor()); // null for text files
                     insertStmt.executeUpdate();
 
                     return SaveStatus.ADDED;
@@ -107,6 +111,10 @@ public class FileRepository {
             conditions.add("filepath ILIKE ?");
             params.add("%" + term + "%");
         }
+        for (String term : query.getColorTerms()) {
+            conditions.add("dominant_color ILIKE ?");
+            params.add(term);
+        }
         for (String term : query.getFreeTerms()){
             conditions.add("(filename ILIKE ? OR to_tsvector('simple', content) @@ plainto_tsquery('simple', ?))");
             params.add("%" + term + "%");
@@ -116,22 +124,20 @@ public class FileRepository {
         if (conditions.isEmpty()) return List.of();
 
         String sortStrategy;
-        switch (query.getSortStrategy()){
-            case SCORE -> sortStrategy = "ORDER BY path_score DESC";
-            case NAME -> sortStrategy = "ORDER BY filename ASC";
+        switch (query.getSortStrategy()) {
+            case SCORE         -> sortStrategy = "ORDER BY path_score DESC";
+            case NAME          -> sortStrategy = "ORDER BY filename ASC";
             case DATE_MODIFIED -> sortStrategy = "ORDER BY last_modified DESC";
-            default -> sortStrategy = "ORDER BY (path_score + history_boost) DESC";
+            default            -> sortStrategy = "ORDER BY (path_score + history_boost) DESC";
         }
 
-        String searchSql = "SELECT filename, filepath, content, last_modified, path_score "
-                         + "FROM files WHERE "
-                         + String.join(" AND ", conditions) // AND between all conditions
-                         + " " + sortStrategy;
-
+        String searchSql = "SELECT filename, filepath, content, last_modified, path_score, dominant_color "
+                + "FROM files WHERE "
+                + String.join(" AND ", conditions) // AND between all conditions
+                + " " + sortStrategy;
 
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(searchSql)) {
-
 
             for (int i = 0; i < params.size(); i++) {
                 pstmt.setString(i + 1, params.get(i)); // JDBC is 1-indexed
@@ -140,13 +146,15 @@ public class FileRepository {
             ResultSet rs = pstmt.executeQuery();
 
             while (rs.next()) {
-                results.add(new FileData(
+                FileData fileData = new FileData(
                         rs.getString("filename"),
                         rs.getString("filepath"),
                         rs.getString("content"),
                         rs.getLong("last_modified"),
                         rs.getInt("path_score")
-                ));
+                );
+                fileData.setDominantColor(rs.getString("dominant_color"));
+                results.add(fileData);
             }
         } catch (SQLException e) {
             System.err.println("Search error: " + e.getMessage());
@@ -157,7 +165,7 @@ public class FileRepository {
     public void recordSearchQuery(String query) {
         // insert the query, but if it exists, increment the count
         String sql = "INSERT INTO search_history (query, search_count) VALUES (?, 1) " +
-                     "ON CONFLICT (query) DO UPDATE SET search_count = search_history.search_count + 1";
+                "ON CONFLICT (query) DO UPDATE SET search_count = search_history.search_count + 1";
 
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -223,9 +231,9 @@ public class FileRepository {
 
             while (rs.next()) {
                 rows.add(new String[]{
-                    rs.getString("prefix"),
-                    rs.getString("completion"),
-                    String.valueOf(rs.getInt("hits"))
+                        rs.getString("prefix"),
+                        rs.getString("completion"),
+                        String.valueOf(rs.getInt("hits"))
                 });
             }
 

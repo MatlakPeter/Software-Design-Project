@@ -281,12 +281,12 @@ public class SearchEngineUI extends JFrame {
 
         // Inject sort prefix if the combo differs from Default
         String sortPrefix = switch (sortCombo.getSelectedIndex()) {
-            case 1 -> " sort:score";
-            case 2 -> " sort:name";
-            case 3 -> " sort:date";
+            case 1 -> "sort:score";
+            case 2 -> "sort:name";
+            case 3 -> "sort:date";
             default -> "";
         };
-        String fullQuery = raw + sortPrefix;
+        String fullQuery = raw + " " + sortPrefix;
 
         statusLabel.setText("Searching…");
         resultsPanel.removeAll();

@@ -44,3 +44,5 @@ CREATE TABLE query_predictor (
 );
 
 CREATE INDEX idx_query_predictor_prefix ON query_predictor (prefix);
+
+ALTER TABLE files ADD COLUMN dominant_color VARCHAR(50);
