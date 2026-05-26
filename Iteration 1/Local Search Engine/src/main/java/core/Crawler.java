@@ -18,6 +18,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.charset.Charset;
 import java.nio.charset.MalformedInputException;
 import java.nio.charset.UnmappableCharacterException;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
 
 public class Crawler {
     private String ignoreExtension;
@@ -77,6 +79,48 @@ public class Crawler {
                     scannedPaths.add(file.getAbsolutePath());
                     results.add(fileData);
                 }
+            }
+        }
+    }
+
+    public void scanDirectoryParallel(File directory, BlockingQueue<FileData> queue, ExecutorService readers) {
+        scanDirectoryParallelRecursive(directory, queue, readers);
+    }
+
+    private void scanDirectoryParallelRecursive(File directory, BlockingQueue<FileData> queue, ExecutorService readers) {
+        File[] files = directory.listFiles();
+        if (files == null) { // Error handling for permissions
+            System.out.println("Warning: Access denied or not a directory -> " + directory.getAbsolutePath());
+            return;
+        }
+
+        for (File file : files) {
+            filesScannedCount++;
+            if (filesScannedCount % 1000 == 0) { // Print feeckack for every 1000th file
+                System.out.println("... Still scanning. Files checked: " + filesScannedCount + " (Currently at: " + file.getParent() + ")");
+            }
+
+            if (Files.isSymbolicLink(file.toPath())) { continue; }
+
+            if (file.isDirectory()) {
+                scanDirectoryParallelRecursive(file, queue, readers);
+            } else if (file.isFile() && !file.getName().endsWith(ignoreExtension)) {
+                scannedPaths.add(file.getAbsolutePath());
+
+                // Delegate the actual file parsing to a reader thread.
+                readers.submit(() -> {
+                    FileData fileData = processFile(file);
+                    if (fileData == null) return;
+
+
+                    fileData.setPathScore(PathScorer.score(fileData));
+
+                    try {
+                        queue.put(fileData); // blocks if the queue is full
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                });
             }
         }
     }
